@@ -1,0 +1,8 @@
+config.json
+state.json
+*.pyc
+__pycache__/
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl

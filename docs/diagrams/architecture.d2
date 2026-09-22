@@ -1,0 +1,29 @@
+direction: down
+
+cron: "cron, every 5-15 min" {shape: hexagon}
+
+pages: "Watched pages (no feed, no API)" {
+  grid-columns: 3
+  schedule: "listing page\nmode: text"
+  files: "downloads page\nmode: links (e.g. *.pdf)"
+  tickets: "ticketing system\nwhat is on sale now"
+}
+
+host: "Small always-on host (container, VM or Pi)" {
+  direction: down
+  config: "config.json (0600)\nsources, patterns, SMTP" {shape: page}
+  watcher: "watcher.py\nfetch, reduce to comparable lines, diff\n(python3 standard library only)"
+  state: "state.json\nlast seen lines per source" {shape: cylinder}
+  config -> watcher: read
+  watcher <-> state: "compare, then store"
+}
+
+ses: "Amazon SES\nDKIM + SPF + DMARC" {shape: cloud}
+inbox: "the person who is waiting" {shape: person}
+tf: "Terraform: SES identity,\nDNS records, send-only IAM user" {shape: document}
+
+cron -> host.watcher: run
+host.watcher -> pages: "1. fetch"
+host.watcher -> ses: "2. SMTP, only when something changed"
+ses -> inbox: "3. diff + direct link"
+tf -> ses: provisions

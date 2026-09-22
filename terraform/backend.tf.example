@@ -1,0 +1,11 @@
+# Keep state somewhere durable rather than next to the checkout. Copy to
+# backend.tf and adjust; create the bucket and lock table first.
+terraform {
+  backend "s3" {
+    bucket         = "your-terraform-state"
+    key            = "calendar-watcher/terraform.tfstate"
+    region         = "us-west-2"
+    encrypt        = true
+    dynamodb_table = "your-terraform-locks"
+  }
+}
