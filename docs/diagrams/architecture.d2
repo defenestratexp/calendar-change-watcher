@@ -1,29 +1,41 @@
-direction: down
+# Renders only inside the N9N d2 pipeline (filer icon library + lib/style.d2); docs/diagrams/architecture.png is the published image.
+...@../../lib/style.d2
+...@/mnt/n9n/assets/icons/d2/aws.d2
+...@/mnt/n9n/assets/icons/d2/simple.d2
+...@/mnt/n9n/assets/icons/d2/tabler.d2
 
-cron: "cron, every 5-15 min" {shape: hexagon}
+vars: {d2-config: {layout-engine: elk}}
 
-pages: "Watched pages (no feed, no API)" {
-  grid-columns: 3
-  schedule: "listing page\nmode: text"
-  files: "downloads page\nmode: links (e.g. *.pdf)"
-  tickets: "ticketing system\nwhat is on sale now"
-}
+direction: right
+
+title: "Change watcher — watch pages with no feed or API, email only when they change" {class: title}
+
+cron: "cron\nevery 5-15 min" {class: [svc; tabler-clock]}
 
 host: "Small always-on host (container, VM or Pi)" {
-  direction: down
-  config: "config.json (0600)\nsources, patterns, SMTP" {shape: page}
-  watcher: "watcher.py\nfetch, reduce to comparable lines, diff\n(python3 standard library only)"
-  state: "state.json\nlast seen lines per source" {shape: cylinder}
-  config -> watcher: read
-  watcher <-> state: "compare, then store"
+  class: zone
+  config: "config.json (0600)\nsources, patterns, SMTP" {class: [small; tabler-file-settings]}
+  watcher: "watcher.py\nfetch, reduce to\ncomparable lines, diff\n(python3 standard\nlibrary only)" {class: [svc; simple-python]}
+  state: "state.json\nlast seen lines per source" {class: [small; tabler-database]}
+  config -> watcher: read {class: flow}
+  state <-> watcher: "compare,\nthen store" {class: flow}
 }
 
-ses: "Amazon SES\nDKIM + SPF + DMARC" {shape: cloud}
-inbox: "the person who is waiting" {shape: person}
-tf: "Terraform: SES identity,\nDNS records, send-only IAM user" {shape: document}
+pages: "Watched pages\n(no feed, no API)" {
+  class: subzone
+  grid-columns: 1
+  grid-gap: 30
+  schedule: "listing page\nmode: text" {class: [small; tabler-file-text]}
+  files: "downloads page\nmode: links (e.g. *.pdf)" {class: [small; tabler-file-type-pdf]}
+  tickets: "ticketing system\nwhat is on sale now" {class: [small; tabler-ticket]}
+}
 
-cron -> host.watcher: run
-host.watcher -> pages: "1. fetch"
-host.watcher -> ses: "2. SMTP, only when something changed"
-ses -> inbox: "3. diff + direct link"
-tf -> ses: provisions
+ses: "Amazon SES\nDKIM + SPF + DMARC" {class: [svc; aws-amazonsimpleemailservice]}
+inbox: "the person\nwho is waiting" {class: [svc; tabler-user]}
+tf: "Terraform: SES identity,\nDNS records, send-only IAM user" {class: [svc; simple-terraform]}
+
+cron -> host.watcher: run {class: flow}
+host.watcher -> pages: "1. fetch" {class: flow}
+host.watcher -> ses: "2. SMTP, only when\nsomething changed" {class: flow}
+inbox <-> ses: "3. diff + direct link" {class: flow; target-arrowhead.shape: none}
+tf -> ses: provisions {class: flow}
